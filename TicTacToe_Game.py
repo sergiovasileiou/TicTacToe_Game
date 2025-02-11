@@ -1,7 +1,6 @@
 import streamlit as st
 import random
 
-# Set the title
 st.title("Sergio's Tics & Tacs")
 
 # Initialize session state variables if they don't exist.
@@ -12,7 +11,6 @@ if "game_over" not in st.session_state:
 if "result" not in st.session_state:
     st.session_state.result = ""
 
-# Helper functions
 def check_win(board, marker):
     wins = [
         (0, 1, 2), (3, 4, 5), (6, 7, 8),   # rows
@@ -33,15 +31,14 @@ def computer_move():
         move = random.choice(available)
         st.session_state.board[move] = "O"
 
-# Function to reset the game.
 def reset_game():
     st.session_state.board = [""] * 9
     st.session_state.game_over = False
     st.session_state.result = ""
     st.experimental_rerun()
 
-# Display the board as a 3x3 grid using columns.
 st.write("**Game Board**")
+# Display the board as a 3×3 grid using Streamlit columns.
 for row in range(3):
     cols = st.columns(3)
     for col in range(3):
@@ -56,7 +53,6 @@ for row in range(3):
                 if not st.session_state.game_over:
                     if st.button(" ", key=f"cell_{idx}", help=f"Cell {idx+1}"):
                         st.session_state.board[idx] = "X"
-                        # Check if the player wins with this move.
                         if check_win(st.session_state.board, "X"):
                             st.session_state.game_over = True
                             st.session_state.result = "win"
@@ -72,20 +68,28 @@ for row in range(3):
                             elif check_draw(st.session_state.board):
                                 st.session_state.game_over = True
                                 st.session_state.result = "draw"
-                        st.experimental_rerun()  # Rerun to update the board
+                        st.experimental_rerun()
 
-# Show game over messages if the game has ended.
+# Show game over messages and display the corresponding image.
 if st.session_state.game_over:
     st.markdown("---")
     if st.session_state.result == "win":
-        st.image("win_image.png", width=150)
+        try:
+            # Use a relative file path with a forward slash.
+            st.image("./win_image.png", width=150)
+        except Exception as e:
+            st.error("Failed to load win image. Check that 'win_image.png' is in the right folder and use forward slashes in your path.")
         st.success("OMG, you won! Congratulatioooons!!!")
     elif st.session_state.result == "loss":
-        st.image("loss_image.png", width=150)
+        try:
+            st.image("./loss_image.png", width=150)
+        except Exception as e:
+            st.error("Failed to load loss image. Check that 'loss_image.png' is in the right folder and use forward slashes in your path.")
         st.error("Aw, too bad! You lost. Try again next time <3")
     else:
         st.warning("It's a draw!")
 
-# Reset game button
+# Reset game button.
 if st.button("Reset Game"):
     reset_game()
+
