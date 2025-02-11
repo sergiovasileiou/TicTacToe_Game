@@ -1,40 +1,24 @@
 import streamlit as st
-#!/usr/bin/env python3
 import math
 
-# Define our markers and the empty slot representation
-human = "❌"
-comp = "⭕"
-empty = " "  # Empty cell
+# Define markers
+HUMAN = "❌"
+COMP = "⭕"
+EMPTY = " "
 
-def print_board(board):
-    """Prints the current game board with decorative spacing."""
-    # Create a board display that shows numbers for empty spots
-    display = []
-    for i, cell in enumerate(board):
-        if cell == empty:
-            display.append(str(i + 1))
-        else:
-            display.append(cell)
-    print("\n")
-    print("         {}      |      {}      |      {}".format(display[0], display[1], display[2]))
-    print("   ---------------+---------------+---------------")
-    print("         {}      |      {}      |      {}".format(display[3], display[4], display[5]))
-    print("   ---------------+---------------+---------------")
-    print("         {}      |      {}      |      {}".format(display[6], display[7], display[8]))
-    print("\n")
+# Initialize session state variables if not already set
+if "board" not in st.session_state:
+    st.session_state.board = [EMPTY for _ in range(9)]
+if "game_over" not in st.session_state:
+    st.session_state.game_over = False
+if "result_message" not in st.session_state:
+    st.session_state.result_message = ""
 
 def is_winner(board, marker):
-    """Checks for winning conditions for specified marker."""
     win_conditions = [
-        (0, 1, 2),
-        (3, 4, 5),
-        (6, 7, 8),
-        (0, 3, 6),
-        (1, 4, 7),
-        (2, 5, 8),
-        (0, 4, 8),
-        (2, 4, 6)
+        (0, 1, 2), (3, 4, 5), (6, 7, 8),  # horizontal
+        (0, 3, 6), (1, 4, 7), (2, 5, 8),  # vertical
+        (0, 4, 8), (2, 4, 6)              # diagonal
     ]
     for (a, b, c) in win_conditions:
         if board[a] == board[b] == board[c] == marker:
@@ -42,14 +26,12 @@ def is_winner(board, marker):
     return False
 
 def is_draw(board):
-    """Determines if the board is full (a draw)."""
-    return all(cell != empty for cell in board)
+    return all(cell != EMPTY for cell in board)
 
 def minimax(board, depth, is_maximizing):
-    """Minimax algorithm to choose the best move for the computer."""
-    if is_winner(board, comp):
+    if is_winner(board, COMP):
         return 1
-    elif is_winner(board, human):
+    elif is_winner(board, HUMAN):
         return -1
     elif is_draw(board):
         return 0
@@ -57,98 +39,91 @@ def minimax(board, depth, is_maximizing):
     if is_maximizing:
         best_score = -math.inf
         for i in range(9):
-            if board[i] == empty:
-                board[i] = comp
+            if board[i] == EMPTY:
+                board[i] = COMP
                 score = minimax(board, depth + 1, False)
-                board[i] = empty
+                board[i] = EMPTY
                 best_score = max(score, best_score)
         return best_score
     else:
         best_score = math.inf
         for i in range(9):
-            if board[i] == empty:
-                board[i] = human
+            if board[i] == EMPTY:
+                board[i] = HUMAN
                 score = minimax(board, depth + 1, True)
-                board[i] = empty
+                board[i] = EMPTY
                 best_score = min(score, best_score)
         return best_score
 
 def best_move(board):
-    """Determines the best move for the computer using minimax."""
     best_score = -math.inf
     move = None
     for i in range(9):
-        if board[i] == empty:
-            board[i] = comp
+        if board[i] == EMPTY:
+            board[i] = COMP
             score = minimax(board, 0, False)
-            board[i] = empty
+            board[i] = EMPTY
             if score > best_score:
                 best_score = score
                 move = i
     return move
 
-def display_title():
-    """Displays a big, fun title for Sergio's TicTacs."""
-    print("**************************************************")
-    print("*           Welcome to Sergio's TicTacs!         *")
-    print("*         Let's play an epic game of TicTacToe!   *")
-    print("**************************************************\n")
+def computer_move():
+    board = st.session_state.board
+    move = best_move(board)
+    if move is not None:
+        board[move] = COMP
+        if is_winner(board, COMP):
+            st.session_state.result_message = "😢 Aww, too bad. You lost. Better luck next time <3"
+            st.session_state.game_over = True
+        elif is_draw(board):
+            st.session_state.result_message = "🤝 It's a tie! Great game!"
+            st.session_state.game_over = True
 
-def main():
-    board = [empty for _ in range(9)]
-    display_title()
-    print("You are playing as {} and the computer is {}.".format(human, comp))
-    print("Choose a position by entering a number between 1-9 corresponding to:")
-    print("\n 1 | 2 | 3 ")
-    print("-----------")
-    print(" 4 | 5 | 6 ")
-    print("-----------")
-    print(" 7 | 8 | 9 \n")
-    
-    while True:
-        print_board(board)
-        
-        if is_winner(board, human):
-            print("**************************************************")
-            print("🎉 OMG, you won! Congratulaaaaaations!!! 🎉")
-            print("**************************************************")
-            break
-        if is_winner(board, comp):
-            print("**************************************************")
-            print("😢 Aww, too bad. You lost. Better luck next time <3")
-            print("**************************************************")
-            break
-        if is_draw(board):
-            print("**************************************************")
-            print("🤝 It's a tie! Great game!")
-            print("**************************************************")
-            break
-        
-        # Human turn
-        valid_move = False
-        while not valid_move:
-            try:
-                move = int(input("Your move (1-9): ")) - 1
-                if move < 0 or move > 8:
-                    print("❗ Invalid position. Choose a number between 1 and 9.")
-                elif board[move] != empty:
-                    print("❗ That spot is already taken. Try another!")
-                else:
-                    board[move] = human
-                    valid_move = True
-            except ValueError:
-                print("❗ Please enter a valid number.")
-        
-        # Check if the game ended after the human move
-        if is_winner(board, human) or is_draw(board):
-            continue
+def handle_move(index):
+    board = st.session_state.board
+    # Only allow a move if the cell is empty and the game is not over
+    if board[index] == EMPTY and not st.session_state.game_over:
+        board[index] = HUMAN
+        if is_winner(board, HUMAN):
+            st.session_state.result_message = "🎉 OMG, you won! Congratulaaaaaations!!!"
+            st.session_state.game_over = True
+        elif is_draw(board):
+            st.session_state.result_message = "🤝 It's a tie! Great game!"
+            st.session_state.game_over = True
+        else:
+            computer_move()
 
-        # Computer turn
-        comp_index = best_move(board)
-        if comp_index is not None:
-            board[comp_index] = comp
-            print("Computer placed {} in position {}".format(comp, comp_index + 1))
+# Display title and instructions
+st.markdown("# Sergio's TicTacs")
+st.markdown("## Let's play an epic game of Tic Tac Toe! 🚀")
+st.markdown("You are **❌**, while the computer is **⭕**.")
+st.write("### Board Positions:")
+st.write("1 | 2 | 3")
+st.write("4 | 5 | 6")
+st.write("7 | 8 | 9")
 
-if __name__ == '__main__':
-    main()
+# Draw the game board as a 3x3 grid
+board = st.session_state.board
+for row in range(3):
+    cols = st.columns(3)
+    for col in range(3):
+        index = row * 3 + col
+        cell = board[index]
+        # If cell is empty and game is still on, show a button; otherwise, display the marker.
+        if cell == EMPTY and not st.session_state.game_over:
+            if cols[col].button(str(index + 1), key=f"btn_{index}"):
+                handle_move(index)
+                st.experimental_rerun()
+        else:
+            cols[col].markdown(f"<h1 style='text-align: center;'>{cell}</h1>", unsafe_allow_html=True)
 
+if st.session_state.game_over:
+    st.markdown(f"## {st.session_state.result_message}")
+
+# Reset button to restart the game
+if st.button("Reset Game"):
+    st.session_state.board = [EMPTY for _ in range(9)]
+    st.session_state.game_over = False
+    st.session_state.result_message = ""
+    st.experimental_rerun()
