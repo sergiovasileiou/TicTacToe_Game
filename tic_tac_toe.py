@@ -102,6 +102,9 @@ st.markdown("---")
 if st.session_state.player_mode is None:
     st.session_state.player_mode = st.radio("Select game mode:", ["1 Player", "2 Players"])
     st.session_state.current_turn = HUMAN
+    st.session_state.board = [EMPTY for _ in range(9)]
+    st.session_state.game_over = False
+    st.session_state.result_message = ""
     st.stop()
 
 if st.button("Reset Game"):
