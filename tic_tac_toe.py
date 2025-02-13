@@ -73,7 +73,7 @@ def handle_move(index):
             st.session_state.result_message = "🤝 It's a tie! Well played!"
             st.session_state.game_over = True
         else:
-            if st.session_state.player_mode == "1 Player":
+            if st.session_state.player_mode == "1 Player" and st.session_state.current_turn == HUMAN:
                 st.session_state.current_turn = COMP
                 time.sleep(0.2)  # Reduce UI lag
                 computer_move()
