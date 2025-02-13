@@ -1,5 +1,6 @@
 import streamlit as st
 import math
+import time
 
 # Define markers and board values
 HUMAN = "❌"
@@ -36,15 +37,17 @@ def minimax(board, is_maximizing):
         return -1
     if is_draw(board):
         return 0
-
-    best_score = -math.inf if is_maximizing else math.inf
+    
+    scores = []
+    moves = []
     for i in range(9):
         if board[i] == EMPTY:
             board[i] = COMP if is_maximizing else HUMAN
             score = minimax(board, not is_maximizing)
             board[i] = EMPTY
-            best_score = max(best_score, score) if is_maximizing else min(best_score, score)
-    return best_score
+            scores.append(score)
+            moves.append(i)
+    return max(scores) if is_maximizing else min(scores)
 
 def best_move():
     best_score = -math.inf
@@ -62,6 +65,7 @@ def handle_move(index):
     board = st.session_state.board
     if board[index] == EMPTY and not st.session_state.game_over:
         board[index] = st.session_state.current_turn
+        time.sleep(0.1)  # Ensuring UI updates properly
         if is_winner(board, st.session_state.current_turn):
             st.session_state.result_message = f"🎉 {st.session_state.current_turn} WINS! Congratulations!"
             st.session_state.game_over = True
@@ -71,14 +75,17 @@ def handle_move(index):
         else:
             if st.session_state.player_mode == "1 Player":
                 st.session_state.current_turn = COMP
+                time.sleep(0.2)  # Reduce UI lag
                 computer_move()
             else:
                 st.session_state.current_turn = HUMAN if st.session_state.current_turn == COMP else COMP
+                st.rerun()
 
 def computer_move():
     move = best_move()
     if move is not None:
         st.session_state.board[move] = COMP
+    time.sleep(0.2)  # Reduce UI lag
     if is_winner(st.session_state.board, COMP):
         st.session_state.result_message = "😢 You lost! Better luck next time!"
         st.session_state.game_over = True
@@ -86,12 +93,11 @@ def computer_move():
         st.session_state.result_message = "🤝 It's a tie!"
         st.session_state.game_over = True
     st.session_state.current_turn = HUMAN
+    st.rerun()
 
-st.markdown("""
-    <h1 style='text-align: center; font-size: 50px;'>🔥 Ultimate Tic-Tac-Toe 🔥</h1>
-    <h3 style='text-align: center;'>Let's battle it out! 🚀</h3>
-    <hr>
-""", unsafe_allow_html=True)
+st.title("🔥 Ultimate Tic-Tac-Toe 🔥")
+st.subheader("Let's battle it out! 🚀")
+st.markdown("---")
 
 if st.session_state.player_mode is None:
     st.session_state.player_mode = st.radio("Select game mode:", ["1 Player", "2 Players"])
@@ -104,7 +110,7 @@ if st.button("Reset Game"):
     st.session_state.result_message = ""
     st.session_state.current_turn = HUMAN
     st.session_state.player_mode = None
-    st.stop()
+    st.rerun()
 
 board = st.session_state.board
 for row in range(3):
@@ -113,10 +119,10 @@ for row in range(3):
         index = row * 3 + col
         cell = board[index]
         if cell == EMPTY and not st.session_state.game_over:
-            if cols[col].button(str(index + 1), key=f"btn_{index}"):
+            if cols[col].button(f" ", key=f"btn_{index}"):
                 handle_move(index)
         else:
             cols[col].markdown(f"<h1 style='text-align: center;'>{cell}</h1>", unsafe_allow_html=True)
 
 if st.session_state.game_over:
-    st.markdown(f"<h2 style='text-align: center;'>{st.session_state.result_message}</h2>", unsafe_allow_html=True)
+    st.subheader(st.session_state.result_message)
