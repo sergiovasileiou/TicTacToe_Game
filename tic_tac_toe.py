@@ -79,7 +79,7 @@ def handle_move(index):
                 computer_move()
             else:
                 st.session_state.current_turn = HUMAN if st.session_state.current_turn == COMP else COMP
-                st.rerun() # Ensure UI refresh after move
+                st.rerun()
 
 def computer_move():
     move = best_move()
