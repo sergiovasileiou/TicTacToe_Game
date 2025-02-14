@@ -82,10 +82,14 @@ def handle_move(index):
         
         st.rerun()  # Ensure UI refresh after move
 
+import streamlit as st
+
 def computer_move():
     move = best_move()
     if move is not None:
         st.session_state.board[move] = COMP
+        st.rerun()  # First rerun ensures the move appears on the board before checking results
+
     if is_winner(st.session_state.board, COMP):
         st.session_state.result_message = "😢 You lost! Better luck next time!"
         st.session_state.game_over = True
@@ -95,7 +99,8 @@ def computer_move():
     else:
         st.session_state.current_turn = HUMAN  # Only switch turns if the game isn't over
 
-    st.rerun()  # Refresh UI immediately after the move
+    st.rerun()  # Second rerun updates UI with game result or turn change
+
 
 
 st.title("🔥 Ultimate Tic-Tac-Toe 🔥")
