@@ -65,7 +65,7 @@ def handle_move(index):
     board = st.session_state.board
     if board[index] == EMPTY and not st.session_state.game_over:
         board[index] = st.session_state.current_turn
-        
+        time.sleep(0.1)  # Ensuring UI updates properly
         if is_winner(board, st.session_state.current_turn):
             st.session_state.result_message = f"🎉 {st.session_state.current_turn} WINS! Congratulations!"
             st.session_state.game_over = True
@@ -75,14 +75,11 @@ def handle_move(index):
         else:
             if st.session_state.player_mode == "1 Player" and st.session_state.current_turn == HUMAN:
                 st.session_state.current_turn = COMP
-                st.rerun()  # Rerun before AI move for smooth UI update
+                time.sleep(0.2)  # Reduce UI lag
                 computer_move()
             else:
                 st.session_state.current_turn = HUMAN if st.session_state.current_turn == COMP else COMP
-        
-        st.rerun()  # Ensure UI refresh after move
-
-import streamlit as st
+                st.rerun() # Ensure UI refresh after move
 
 def computer_move():
     move = best_move()
