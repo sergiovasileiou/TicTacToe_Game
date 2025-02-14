@@ -60,12 +60,12 @@ def best_move():
             if score > best_score:
                 best_score, move = score, i
     return move
-
+    
 def handle_move(index):
     board = st.session_state.board
     if board[index] == EMPTY and not st.session_state.game_over:
         board[index] = st.session_state.current_turn
-        time.sleep(0.1)  # Ensuring UI updates properly
+        
         if is_winner(board, st.session_state.current_turn):
             st.session_state.result_message = f"🎉 {st.session_state.current_turn} WINS! Congratulations!"
             st.session_state.game_over = True
@@ -75,25 +75,28 @@ def handle_move(index):
         else:
             if st.session_state.player_mode == "1 Player" and st.session_state.current_turn == HUMAN:
                 st.session_state.current_turn = COMP
-                time.sleep(0.2)  # Reduce UI lag
+                st.rerun()  # Rerun before AI move for smooth UI update
                 computer_move()
             else:
                 st.session_state.current_turn = HUMAN if st.session_state.current_turn == COMP else COMP
-                st.rerun()
+        
+        st.rerun()  # Ensure UI refresh after move
 
 def computer_move():
     move = best_move()
     if move is not None:
         st.session_state.board[move] = COMP
-    time.sleep(0.2)  # Reduce UI lag
     if is_winner(st.session_state.board, COMP):
         st.session_state.result_message = "😢 You lost! Better luck next time!"
         st.session_state.game_over = True
     elif is_draw(st.session_state.board):
         st.session_state.result_message = "🤝 It's a tie!"
         st.session_state.game_over = True
-    st.session_state.current_turn = HUMAN
-    st.rerun()
+    else:
+        st.session_state.current_turn = HUMAN  # Only switch turns if the game isn't over
+
+    st.rerun()  # Refresh UI immediately after the move
+
 
 st.title("🔥 Ultimate Tic-Tac-Toe 🔥")
 st.subheader("Let's battle it out! 🚀")
